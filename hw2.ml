@@ -15,7 +15,7 @@ let convert_grammar graml =
     List.fold_left (fun acc (lhs, rhs) -> 
       match List.assoc_opt lhs acc with
       | None -> (lhs, [rhs]) :: acc
-      | Some existing -> (lhs, rhs :: existing) :: acc
+      | Some existing -> (lhs, existing @ [rhs]) :: acc
     ) [] rules
   in
   (start, fun nt ->
