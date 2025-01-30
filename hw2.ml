@@ -89,3 +89,53 @@ if it returns some, then it should call the accept function with the suffix*)
     match match_prefix (rule_function start_symbol) frag with
     | None -> None
     | Some suffix -> accept suffix 
+(*make_parser uses the same logic as make matcher but it concatenates the trees the come out of it*)
+let make_parser gram =
+  let (start_symbol, rule_function) = gram in
+  fun frag ->
+    let rec match_prefix rules frag =
+      match rules with (*breaks down rules into rule to we can check one by one*)
+      | [] -> None
+      | rule :: rest_rules ->
+          match match_rule rule frag with
+          | None -> match_prefix rest_rules frag
+          | Some (tree_list, suffix) ->
+              if suffix = [] then Some (Node (start_symbol, tree_list))
+              else match_prefix rest_rules frag
+
+    and match_rule rule frag = (*checks one rule with the frag and depending on the status of the rule it will recursively call try_rules in order to "explore" that path*)
+      (*if the path fails in the try_rules, it returns back out one level and tries the next rule*)
+      match (rule, frag) with
+      | ([], suffix) -> Some ([], suffix)
+      | ((T term) :: rest_terms, t' :: ts) ->
+          if term = t' then
+            match match_rule rest_terms ts with
+            | None -> None
+            | Some (tree_list, suffix) -> Some (Leaf t' :: tree_list, suffix)
+            (*this keeps track of the tree list as it keeps getting recursively built up
+            expr -> term -> lvalue, incrop -> ...*)
+          else None
+          (*this case takes care of nonterminals leading to other nonterminals*)
+          (*this should recursively call match_rule on nonterminals until it reaches a terminal where it returns the list*)
+      | ((N nonterm) :: rest_terms, _) ->
+          let rules = rule_function nonterm in
+          let rec try_rules rules frag = (*uses the rule from the nonterminal just seen*)
+            match rules with
+            | [] -> None
+            | rule :: rest_rules ->
+                match match_rule rule frag with
+                | None -> try_rules rest_rules frag (* if the rule does not match keep going*)
+                | Some (subtree_list, inner_suffix) -> 
+                    match match_rule rest_terms inner_suffix with (*matches with the rest of the rules if the first expansion into the nonterminal was successful*)
+                    | None -> try_rules rest_rules frag 
+                    (*this is the recursive call where it keeps exploring the rest of the rules given that the nonterminal was successful*)
+                    | Some (rest_tree_list, final_suffix) ->
+                        Some (Node (nonterm, subtree_list) :: rest_tree_list, final_suffix) 
+                        (*same logic as matcher but instead returns a tree that keeps gettig added to*)
+          in
+          try_rules rules frag
+      | (_, []) -> None
+    in
+    match match_prefix (rule_function start_symbol) frag with
+    | None -> None
+    | Some tree -> Some tree
