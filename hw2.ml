@@ -33,32 +33,6 @@ let parse_tree_leaves tree =
     | Node (_, children) -> List.fold_left helper acc children
   in
   List.rev (helper [] tree)
-(*let make_matcher gram = 
-  let (start_symbol, rule_function) = gram in
-  fun accept frag ->
-    let rec match_prefix rules frag =
-      match rules with
-      | [] -> None
-      | rule :: rest_rules ->
-          (match match_rule rule frag with
-          | Some suffix -> Some suffix   
-          | None -> match_prefix rest_rules frag) 
-    and match_rule rule frag =
-      match (rule, frag) with
-      | ([], suffix) -> Some suffix
-      | ((T term)::rest_rule, t'::ts) ->
-          if term = t' then match_rule rest_rule ts
-          else None
-      | ((N nonterm)::rest_rule, _) ->
-          (match match_prefix (rule_function nonterm) frag with
-          | None -> None
-          | Some suffix -> match_rule rest_rule suffix)
-      | _, [] -> None
-    in
-    match match_prefix (rule_function start_symbol) frag with
-    | None -> None
-    | Some suffix -> accept suffix *)
-
 let make_matcher gram = 
     let (start_symbol, rule_function) = gram in
     fun accept frag -> 

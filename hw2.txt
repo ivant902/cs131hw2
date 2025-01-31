@@ -1,0 +1,63 @@
+This is the report for Homework 2. First, I will detail my approach to each
+function. First, the convert_grammar function. I basically went through HW1's
+grammar, and everytime I saw a new rule, identified by the starting nonterminal,
+I added it to the rule_map. Everytime I saw a recurring rule, I added that rule's
+RHS, to the existing rule in the new_grammar. As a result, I got a new_grammar
+that was the starting nonterminal, and a rule_function that would take in a 
+nonterminal and return a list of the rules that expands that nonterminal. 
+
+The next function is the parse_tree_leaves function. This function was simple as
+it recursively went through the tree and added leafs to the result list. If it 
+encountered a node with children, it would explore that node until it reached the
+leaves. Since it appended leafs to the result list rather prepended it, the 
+function reversed the result list in order to get the correct order of leaves. 
+
+The make_matcher function was by far the most complex and difficult function. 
+Given a grammar, acceptor, and a fragment, the function first tries to match a 
+prefix to a rule that spans from the starting nonterminal. If it was successful,
+it would recursively try to match the suffix to the rest of the rules. The main 
+problem I had was figuring out how to handle the suffix if I traversed through 
+the incorrect starting prefix rule. Using the sample test case as an example,
+Expr -> Term, Binop, and Expr. The term expands to num, lvalue, lvalue&incrop,
+and incrop&lvalue in that order. The correct path is to go down lvalue&incrop 
+not the first lvalue. I was unable to figure out the logic on backtracking
+appropriately to fix this issue. For basic test cases where backtracking wasn't
+necessary, I passed the tests. 
+
+The make_parser function was also difficult to implement. This function heavily
+relied on the same logic I had for the make_matcher function but this time,
+the function would return a tree. Also, I added some functionality to this function
+compared to the matcher function where upon reaching nonterminals, the function
+would recursively try to match the suffix with the expansion of that nonterminal.
+This worked for the test cases such that the parse tree was returned correctly.
+The reaso for the addition was to create backtracking logic, but in reality, 
+it just tried a bunch of cases and luckily passed the tests. Unfortunately, I was 
+unable to apply that additional logic to the matcher function, which I believe
+may be the reason I failed test4. After writing additional logic for parser, I tried
+to apply it to the matcher, but the complexity of the code began confusing me and
+I was unable to apply that logic to the parser, despite it being very similar logic.
+
+Writing the test cases for parser showed that parser is exactly the opposite of 
+parse_tree_leaves. Given a fragment, parser would return the apporpriate tree 
+according to the grammar, and passing that into parse_tree_leaves would return the 
+original fragment. 
+
+The main issues I had with this project was the time constraint. Unfortunately,
+I was unable to dedicate more time to fixing the matcher function and even debugging
+the final few test cases for the parser function due to other course loads. Further, 
+the assignment was very difficult overall to understand and even begin to work on. 
+I believe that it is just the nature of the topic and how difficult recursion is 
+to wrap your head around. I found myself going through the recursive code but it was
+overall too much to try and debug. 
+
+The main weaknesses of my solution for matcher and parser are that I was unable to 
+reliably produce backtracking logic. Admittedly, there are many edge cases and logic
+gaps in my function that I am unable to recognize or fix, as evidenced by not passing
+all the test cases. The most prominent example is in make_matcher_test. If I added
+"[N Number]" as the first expansion of my math_grammar, the test case would fail,
+as it doesn't know to backtrack and try the second expansion. It takes the first
+true expansion and isn't able to backtrack and try the rest when the first expansion
+inevitably fails. As for the parser's test case, it shows that a proper parse tree
+is returned and that parse_tree_leaves returns as expected, the original frag. 
+Further, if the grammar rules changed such that N Number was the first expansion
+option, the parser test would also fail because it doesn't know to backtrack. 
